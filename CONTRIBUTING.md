@@ -10,7 +10,7 @@ Thanks for wanting to contribute! This file explains how to set up the project, 
 - Page Object Model (POM) guidelines
 - Writing tests
 - Fixtures and test data
-- Code style and formatting
+- Code style and linting
 - Dealing with flaky tests
 - Pull request process
 - Setting up CI with GitHub Actions
@@ -37,7 +37,18 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-4. Install Playwright browsers:
+4. Install development tools (linters and formatters):
+```bash
+pip install -r requirements-dev.txt
+```
+
+5. Set up pre-commit hooks (optional but recommended):
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+6. Install Playwright browsers:
 ```bash
 python -m playwright install
 ```
@@ -84,6 +95,7 @@ pytest --base-url https://staging.example.com
 - `conftest.py` — Pytest fixtures shared across tests (login flows, pre-filled carts).
 - `test_data.py` — Test data like user credentials and expected messages.
 - `requirements.txt` — Pinned dependencies for reproducible installs.
+- `requirements-dev.txt` — Development tools like linters and formatters.
 
 **Naming conventions:**
 - Page object classes: `CamelCase` (e.g., `InventoryPage`, `CartPage`)
@@ -175,17 +187,45 @@ def log_in_to_saucedemo(page):
     return page
 ```
 
-## Code style and formatting
+## Code style and linting
 
-- Use 4-space indentation for Python
-- Use descriptive names for variables and methods
-- Add docstrings to non-trivial functions
-- Keep lines reasonably short and readable
+This project uses automated linting to keep code consistent and catch potential issues.
 
-Currently no linters are enforced, but consider these tools for future PRs:
-- `black` — Code formatter
-- `isort` — Import sorter
-- `flake8` — Linter
+**Linting tools:**
+- **`black`** — Auto-formats code for consistency
+- **`isort`** — Sorts and organizes imports
+- **`flake8`** — Checks for style issues and potential bugs
+
+**Running linters manually:**
+
+Format code with Black:
+```bash
+black .
+```
+
+Sort imports with isort:
+```bash
+isort .
+```
+
+Check for issues with flake8:
+```bash
+flake8 .
+```
+
+Run all at once:
+```bash
+black . && isort . && flake8 .
+```
+
+**Using pre-commit hooks (automatic):**
+
+If you installed pre-commit (see "Getting started"), linters run automatically before each commit. To run them manually on all files:
+```bash
+pre-commit run --all-files
+```
+
+If linters find issues, they'll either fix them automatically (Black and isort) or report them for you to fix (flake8). You can then stage and commit the changes.
 
 ## Dealing with flaky tests
 
@@ -222,17 +262,22 @@ git checkout -b fix/inventory-page-selector
 
 3. **Write tests for new features** and update Page Objects as necessary
 
-4. **Run tests locally** before pushing:
+4. **Run linters** before pushing:
+```bash
+black . && isort . && flake8 .
+```
+
+5. **Run tests locally** to make sure everything works:
 ```bash
 pytest -q
 ```
 
-5. **Write a clear PR description** including:
+6. **Write a clear PR description** including:
    - What you changed and why
    - Any test prerequisites or setup steps
    - Files that reviewers should focus on
 
-6. **Push to your fork and open a PR** against the main repository
+7. **Push to your fork and open a PR** against the main repository
 
 ## Setting up CI with GitHub Actions
 
@@ -252,7 +297,9 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: Run linters
+        run: black . && isort . && flake8 .
       - name: Install Playwright browsers
         run: python -m playwright install --with-deps
       - name: Run tests
@@ -261,7 +308,8 @@ jobs:
 
 This workflow:
 - Sets up Python
-- Installs dependencies
+- Installs dependencies and dev tools
+- Runs linters to check code style
 - Installs Playwright browsers
 - Runs pytest with a single browser (faster in CI)
 
