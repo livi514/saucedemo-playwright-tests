@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for wanting to contribute! This file explains how to run the tests locally, the repository conventions (page objects, tests and fixtures), and the expectations for pull requests so contributions are fast to review and easy to maintain.
+Thanks for wanting to contribute! This file explains how to set up the project, run tests locally, how the code is organized, and what's expected from pull requests.
 
 ## Table of contents
 
@@ -10,16 +10,20 @@ Thanks for wanting to contribute! This file explains how to run the tests locall
 - Page Object Model (POM) guidelines
 - Writing tests
 - Fixtures and test data
-- Style, linting and formatting
-- Running tests in parallel / flakiness
+- Code style and formatting
+- Dealing with flaky tests
 - Pull request process
-- Adding CI
+- Setting up CI with GitHub Actions
 
 ## Getting started
 
-1. Fork the repository and clone your fork.
-2. Create and activate a virtual environment (recommended):
+1. Fork the repository and clone your fork:
+```bash
+git clone https://github.com/YOUR-USERNAME/saucedemo-playwright-tests.git
+cd saucedemo-playwright-tests
+```
 
+2. Create and activate a virtual environment (recommended):
 ```bash
 python -m venv .venv
 # Windows
@@ -29,165 +33,238 @@ source .venv/bin/activate
 ```
 
 3. Install dependencies:
-
 ```bash
 pip install -r requirements.txt
 ```
 
 4. Install Playwright browsers:
-
 ```bash
 python -m playwright install
-# or install specific browsers
-python -m playwright install chromium firefox webkit
 ```
 
 ## Running tests locally
 
-The project configures pytest via `pyproject.toml`. The default `addopts` includes multiple browsers and parallel workers. Common commands:
+This project uses pytest configured in `pyproject.toml`. By default, tests run across multiple browsers and with parallel workers.
 
-- Run the whole test suite (uses `pyproject.toml` addopts):
+**Common commands:**
 
+- Run all tests:
 ```bash
 pytest
 ```
 
-- Run smoke tests only:
-
+- Run only smoke tests (quick tests):
 ```bash
 pytest -m smoke
 ```
 
-- Run a single browser:
-
+- Run tests in a single browser:
 ```bash
 pytest --browser chromium
 ```
 
-- Run a single test function:
-
+- Run a specific test:
 ```bash
 pytest tests/test_login_pom.py::test_invalid_credentials -q
 ```
 
-- Override the base URL (useful for staging):
-
+- Override the base URL (useful for testing staging environments):
 ```bash
 pytest --base-url https://staging.example.com
 ```
 
-Notes:
-- `-n N` parallelism is provided by `pytest-xdist`. Parallel runs may reveal shared-state issues in tests or fixtures.
-- `pytest-playwright` provides the `--browser` option used in `pyproject.toml`.
+**Notes:**
+- Tests run in parallel using `pytest-xdist` (configured in `pyproject.toml`). If you see flaky behavior, try running with `-n 0` to disable parallel execution.
+- `pytest-playwright` provides the `--browser` option and handles browser automation.
 
 ## Repository structure and conventions
 
-- `pages/` — Page Object classes. Each file defines a single page class that exposes navigation, actions and accessors.
-- `tests/` — pytest test modules. Tests should be readable and keep assertions at the behavioral level.
-- `conftest.py` — fixtures shared across tests (login flows and pre-filled carts).
-- `test_data.py` — simple data used by tests (users, expected messages, checkout info).
-- `requirements.txt` — pinned dependencies for the project.
+- `pages/` — Page Object classes. Each file defines a single page class.
+- `tests/` — Test modules. Each file tests a specific area of the application.
+- `conftest.py` — Pytest fixtures shared across tests (login flows, pre-filled carts).
+- `test_data.py` — Test data like user credentials and expected messages.
+- `requirements.txt` — Pinned dependencies for reproducible installs.
 
-Naming conventions:
-- Page object classes use `CamelCase` and filenames are snake_case, e.g. `pages/inventory_page.py` defines `InventoryPage`.
-- Tests are `tests/test_<area>_pom.py` or similar; test functions use `snake_case` and descriptive names.
+**Naming conventions:**
+- Page object classes: `CamelCase` (e.g., `InventoryPage`, `CartPage`)
+- Page object files: `snake_case` (e.g., `inventory_page.py`, `cart_page.py`)
+- Test files: `test_<feature>_pom.py` (e.g., `test_login_pom.py`)
+- Test functions: `snake_case` with descriptive names (e.g., `test_user_can_add_item_to_cart`)
 
 ## Page Object Model (POM) guidelines
 
-When adding or updating page objects follow these guidelines:
+The Page Object Model keeps selectors and page interactions in one place. When the UI changes, you only update the Page Object, not every test.
 
-- Single responsibility: one class per page. Keep methods small and descriptive (e.g. `add_backpack()`, `get_cart_count()`).
-- Use Playwright locators on the class `__init__` when they are reused; avoid defining locators inside many methods.
-- Expose actions (verbs) and accessors (get_*, is_*).
-- Keep navigation methods explicit (e.g. `navigate()` or `wait_until_loaded()`). Tests should call navigation helpers from POM when it makes the test clearer.
-- Use data-test attributes where possible. When a selector must change for visual reasons, prefer attributes like `[data-test='add-to-cart-sauce-labs-backpack']` rather than brittle CSS selectors.
+**Key principles:**
+- **Single responsibility:** One class per page
+- **Reusable locators:** Define locators in `__init__` if they're used multiple times
+- **Clear methods:** Use action verbs (`add_item()`, `click_checkout()`) and accessors (`get_price()`, `is_loaded()`)
+- **Prefer data-test attributes:** Use `[data-test='...']` selectors instead of brittle CSS classes
+- **Explicit navigation:** Include methods like `navigate()` or `wait_until_loaded()`
 
-Example pattern:
+**Example:**
 
 ```python
-class SomePage:
+class CartPage:
     def __init__(self, page):
         self.page = page
-        self.submit = page.locator("[data-test='submit']")
+        self.checkout_button = page.locator("[data-test='checkout']")
+        self.item_count = page.locator(".cart-count")
 
-    def do_submit(self):
-        self.submit.click()
+    def click_checkout(self):
+        self.checkout_button.click()
 
-    def get_status(self):
-        return self.page.locator('.status').inner_text()
+    def get_item_count(self):
+        return self.item_count.inner_text()
+
+    def is_checkout_enabled(self):
+        return self.checkout_button.is_enabled()
 ```
 
 ## Writing tests
 
-- Tests should be focused and exercise one behavior. Arrange/Act/Assert is a helpful pattern.
-- Prefer using page objects and fixtures to keep tests concise:
+Tests should be focused and check one behavior at a time. Use the Arrange/Act/Assert pattern:
 
 ```python
-def test_add_item_to_cart(add_backpack_to_cart):
-    cart = CartPage(add_backpack_to_cart)
-    assert cart.get_item_count() == 1
+def test_add_item_to_cart(log_in_to_saucedemo):
+    # Arrange
+    inventory = InventoryPage(log_in_to_saucedemo)
+    
+    # Act
+    inventory.add_backpack_to_cart()
+    
+    # Assert
+    assert inventory.get_cart_count() == "1"
 ```
 
-- Use Playwright's `expect()` helpers for visibility, text and state checks when possible (they include built-in waiting semantics).
-- Mark slow or broad tests with markers (`@pytest.mark.smoke` is available). Explain in the test docstring if behavior is documenting a known bug or product choice.
+**Guidelines:**
+- Keep tests concise by using Page Objects and fixtures
+- Use Playwright's `expect()` assertions for visibility and state checks (they include automatic waits):
+```python
+from playwright.async_api import expect
+
+expect(page.locator(".item")).to_be_visible()
+expect(page.locator("h1")).to_contain_text("Products")
+```
+- Mark slow or broad tests with `@pytest.mark.smoke`
+- If testing a known bug or edge case, document it in the test docstring
 
 ## Fixtures and test data
 
-- Keep fixtures small and composable. `conftest.py` currently provides:
-  - `log_in_to_saucedemo` — logs in and returns a page on `/inventory.html`.
-  - `add_backpack_to_cart` — uses `log_in_to_saucedemo` then adds a backpack and opens the cart.
-  - `add_backpack_and_bike_light_to_cart` — adds two items and opens the cart.
-- Add new fixtures in `conftest.py` as needed. If a fixture is expensive, consider using function scope and document why.
+Fixtures are reusable test setup helpers. They're defined in `conftest.py`:
 
-## Style, linting and formatting
+- `log_in_to_saucedemo` — Logs in and returns a page object at `/inventory.html`
+- `add_backpack_to_cart` — Logs in, adds a backpack, and opens the cart
+- `add_backpack_and_bike_light_to_cart` — Logs in and adds two items to the cart
 
-- Keep code consistent and readable. We do not currently enforce linters, but please follow these conventions:
-  - Use 4-space indentation for Python.
-  - Use descriptive names for methods and variables.
-  - Add docstrings to non-trivial helper functions.
-- If you want, propose a pre-commit configuration (black/isort/flake8) in a follow-up PR.
+**Adding new fixtures:**
+- Add them to `conftest.py`
+- Keep fixtures small and composable
+- Use appropriate scope (usually `function` for independence)
+- Add a docstring explaining what the fixture does
 
-## Running tests in parallel and flakiness
+```python
+@pytest.fixture
+def log_in_to_saucedemo(page):
+    """Log in with valid credentials and return the page."""
+    page.goto("https://www.saucedemo.com")
+    page.fill("[data-test='username']", "standard_user")
+    page.fill("[data-test='password']", "secret_sauce")
+    page.click("[data-test='login-button']")
+    page.wait_for_load_state("networkidle")
+    return page
+```
 
-- The test configuration runs browsers in parallel (`-n 2` in `pyproject.toml`). When adding tests, avoid global mutable state that could cause tests to interfere with each other.
-- If a test is flaky, try to:
-  - Add explicit waits in the POM (`wait_for_selector`, or use `expect()` assertions that wait).
-  - Avoid relying on absolute timing sleeps.
-  - Reduce shared dependencies between tests or scope fixtures more narrowly.
+## Code style and formatting
+
+- Use 4-space indentation for Python
+- Use descriptive names for variables and methods
+- Add docstrings to non-trivial functions
+- Keep lines reasonably short and readable
+
+Currently no linters are enforced, but consider these tools for future PRs:
+- `black` — Code formatter
+- `isort` — Import sorter
+- `flake8` — Linter
+
+## Dealing with flaky tests
+
+Flaky tests fail randomly. To prevent this:
+
+- **Add explicit waits:** Use `page.wait_for_selector()` or Playwright's `expect()` assertions
+- **Avoid `time.sleep()`:** Let Playwright handle timing automatically
+- **Isolate tests:** Each test should be independent; avoid shared state between tests
+- **Check fixture scope:** Use `scope='function'` (the default) to ensure tests don't interfere with each other
+- **Reduce dependencies:** Minimize what each fixture does; break large setups into smaller pieces
+
+Example of a flaky test:
+```python
+# Bad: assumes timing
+inventory.add_item()
+time.sleep(2)
+assert inventory.get_cart_count() == "1"
+
+# Good: waits for the element
+inventory.add_item()
+expect(inventory.cart_badge).to_be_visible()
+assert inventory.get_cart_count() == "1"
+```
 
 ## Pull request process
 
-- Create a feature branch with a descriptive name (e.g. `feat/cart-page-remove-button` or `fix/login-error-message`).
-- Keep changes small and focused.
-- Include tests for new behaviors and update page objects as necessary.
-- Ensure tests pass locally before opening the PR:
+1. **Create a feature branch** with a descriptive name:
+```bash
+git checkout -b feat/add-logout-button-test
+git checkout -b fix/inventory-page-selector
+```
 
+2. **Keep changes focused and small** — One feature or fix per PR
+
+3. **Write tests for new features** and update Page Objects as necessary
+
+4. **Run tests locally** before pushing:
 ```bash
 pytest -q
 ```
 
-- In the PR description include:
-  - What you changed and why.
-  - Any test or environment prerequisites.
-  - If the change impacts selectors or test structure, note the files to review.
+5. **Write a clear PR description** including:
+   - What you changed and why
+   - Any test prerequisites or setup steps
+   - Files that reviewers should focus on
 
-## Adding CI
+6. **Push to your fork and open a PR** against the main repository
 
-If you add CI (GitHub Actions), include steps to:
-- Set up Python
-- Install dependencies
-- Run `python -m playwright install` to install browsers
-- Run `pytest` (optionally in a single browser to save CI time)
+## Setting up CI with GitHub Actions
 
-A minimal example job step is:
+A minimal GitHub Actions workflow to run tests in CI:
 
 ```yaml
-- name: Install Playwright browsers
-  run: python -m playwright install --with-deps
-- name: Run tests
-  run: pytest --browser chromium -q
+name: Run Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Install Playwright browsers
+        run: python -m playwright install --with-deps
+      - name: Run tests
+        run: pytest --browser chromium -q
 ```
 
-## Questions or help
+This workflow:
+- Sets up Python
+- Installs dependencies
+- Installs Playwright browsers
+- Runs pytest with a single browser (faster in CI)
 
-If you're unsure about where to place a change or how to structure a POM, open a draft PR or an issue and tag the repository maintainers. We're happy to help iterate on design.
+## Questions?
+
+Not sure where to add something or how to structure a test? Open a draft PR or issue and ask for help. Happy to iterate on design and answer questions!
