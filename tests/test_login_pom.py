@@ -48,7 +48,7 @@ def test_page_title(page):
     # Arrange: open the login page
     page.goto("/")
 
-    # Assert: the page should have the title 'Swag Labs' when it first loads 
+    # Assert: the page should have the title 'Swag Labs' when it first loads
     expect(page).to_have_title("Swag Labs")
 
 
@@ -94,7 +94,7 @@ def test_response_code(page):
 
     # Arrange: open the login page
     response = page.goto("/")
-    
+
     # Assert: the page returns the expected response code
     assert response.status == 200
 
@@ -122,7 +122,7 @@ def test_invalid_credentials(page):
     # Act: enter invalid credentials
     login.login_with_invalid_credentials()
 
-    # Assert: the error message is displayed 
+    # Assert: the error message is displayed
     expect(login.error_message).to_contain_text(ERROR_MESSAGES["invalid_credentials"])
 
 
@@ -133,7 +133,7 @@ def test_empty_username_text(page):
     login = LoginPage(page)
     login.navigate()
 
-    # Act: login with empty username 
+    # Act: login with empty username
     login.login_with_empty_username()
 
     # Assert: the error message is displayed
@@ -141,7 +141,7 @@ def test_empty_username_text(page):
 
 
 def test_empty_password_text(page):
-    """ This test checks that the error message is displayed when the password field is left empty during login using the LoginPage POM."""
+    """This test checks that the error message is displayed when the password field is left empty during login using the LoginPage POM."""
 
     # Arrange: open the login page
     login = LoginPage(page)
