@@ -1,4 +1,4 @@
-# saucedemo-playwright-tests
+# Saucedemo Playwright Tests
 
 A Playwright test suite for the Sauce Demo web application. This repository contains automated end-to-end tests written in Python using Playwright and configured for local execution.
 
