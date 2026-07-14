@@ -1,5 +1,8 @@
 venv/
 .venv/
+Scripts/
+saucedemo-playwright-tests/
 __pycache__/
 .pytest_cache/
 *.pyc
+pyvenv.cfg
