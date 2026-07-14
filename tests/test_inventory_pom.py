@@ -6,26 +6,43 @@ from playwright.sync_api import expect
 from pages.inventory_page import InventoryPage
 
 # Inventory page baseline checks
+# These baseline tests check the state of the inventory page before any user interaction
+# (i.e. the user has just logged in and been taken to the inventory page)
 
 
 @pytest.mark.smoke
 def test_pom_inventory_page_title(log_in_to_saucedemo):
+    """Smoke test: the inventory page should have the title 'Products' before any user interaction"""
+
+    # Arrange: open the inventory page
     inventory = InventoryPage(log_in_to_saucedemo)
     inventory.wait_until_loaded()
+
+    # Assert: the page should have the title 'Products'
     expect(inventory.title).to_have_text("Products")
 
 
 @pytest.mark.smoke
 def test_pom_cart_icon_visible(log_in_to_saucedemo):
+    """Smoke test: the cart icon should be visible on the inventory page, before any user interaction"""
+
+    # Arrange: open the inventory page
     inventory = InventoryPage(log_in_to_saucedemo)
     inventory.wait_until_loaded()
+
+    # Assert: the cart icon should be visible
     expect(inventory.cart_icon).to_be_visible()
 
 
 @pytest.mark.smoke
 def test_pom_number_of_products(log_in_to_saucedemo):
+    """Smoke test: there should be 6 products displayed on the page, before any user interaction"""
+
+    # Arrange: open the inventory page
     inventory = InventoryPage(log_in_to_saucedemo)
     inventory.wait_until_loaded()
+
+    # Assert: there should be 6 'Product names' displayed
     expect(inventory.product_names).to_have_count(6)
 
 

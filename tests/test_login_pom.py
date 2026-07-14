@@ -37,7 +37,7 @@ def test_login_button_enabled(page):
     # Arrange: open the login page
     page.goto("/")
 
-    # Assert: login button should be visible when the page first loads / before user interaction
+    # Assert: login button should be enabled when the page first loads / before user interaction
     expect(page.locator("#login-button")).to_be_enabled()
 
 
