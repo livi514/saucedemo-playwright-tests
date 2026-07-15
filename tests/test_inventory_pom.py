@@ -48,15 +48,25 @@ def test_pom_number_of_products(log_in_to_saucedemo):
 
 @pytest.mark.smoke
 def test_pom_sort_dropdown_visible(log_in_to_saucedemo):
+    """Smoke test: the drop-down menu for sort options should be visible, before any user interaction"""
+
+    # Arrange: open the inventory page
     inventory = InventoryPage(log_in_to_saucedemo)
     inventory.wait_until_loaded()
+
+    # Assert: the drop-down menu should be visible
     expect(inventory.sort_dropdown).to_be_visible()
 
 
 @pytest.mark.smoke
 def test_pom_sort_dropdown_options(log_in_to_saucedemo):
+    "Smoke test: the drop down options should be visible and have the text 'Name (A to Z)Name (Z to A)Price (low to high)Price (high to low)'"
+
+    # Arrange: open the inventory page
     inventory = InventoryPage(log_in_to_saucedemo)
     inventory.wait_until_loaded()
+
+    # Assert: the drop-down menu should have the expected text
     expect(inventory.sort_dropdown).to_have_text(
         "Name (A to Z)Name (Z to A)Price (low to high)Price (high to low)"
     )
@@ -64,29 +74,49 @@ def test_pom_sort_dropdown_options(log_in_to_saucedemo):
 
 @pytest.mark.smoke
 def test_pom_sort_dropdown_default_value(log_in_to_saucedemo):
+    """Smoke test: the default option in the drop-down menu should be 'az'"""
+
+    # Arrange: open the inventory page
     inventory = InventoryPage(log_in_to_saucedemo)
     inventory.wait_until_loaded()
+
+    # Assert: the drop-down menu should have the default option 'az'
     expect(inventory.sort_dropdown).to_have_value("az")
 
 
 @pytest.mark.smoke
 def test_pom_cart_badge_not_visible(log_in_to_saucedemo):
+    """Smoke test: the cart badge should not be visible before the user has added items to the cart"""
+
+    # Arrange: open the inventory page
     inventory = InventoryPage(log_in_to_saucedemo)
     inventory.wait_until_loaded()
+
+    # Assert: the cart badge is not visible
     expect(inventory.cart_badge).not_to_be_visible()
 
 
 @pytest.mark.smoke
 def test_pom_product_names_visible(log_in_to_saucedemo):
+    """Smoke test: the product names should be visible before any user interaction"""
+
+    # Arrange: open the inventory page
     inventory = InventoryPage(log_in_to_saucedemo)
     inventory.wait_until_loaded()
+
+    # Assert: the product names are visible
     inventory.are_product_names_visible()
 
 
 @pytest.mark.smoke
 def test_pom_product_prices_visible(log_in_to_saucedemo):
+    """Smoke test: the product prices should be visible before any user interaction"""
+
+    # Arrange: open the inventory page
     inventory = InventoryPage(log_in_to_saucedemo)
     inventory.wait_until_loaded()
+
+    # Assert: the product prices are visible
     inventory.are_product_prices_visible()
 
 
