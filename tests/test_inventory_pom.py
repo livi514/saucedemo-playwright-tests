@@ -60,7 +60,7 @@ def test_pom_sort_dropdown_visible(log_in_to_saucedemo):
 
 @pytest.mark.smoke
 def test_pom_sort_dropdown_options(log_in_to_saucedemo):
-    "Smoke test: the drop down options should be visible and have the text 'Name (A to Z)Name (Z to A)Price (low to high)Price (high to low)'"
+    """Smoke test: the drop down options should be visible and have the text 'Name (A to Z)Name (Z to A)Price (low to high)Price (high to low)'"""
 
     # Arrange: open the inventory page
     inventory = InventoryPage(log_in_to_saucedemo)
@@ -124,21 +124,39 @@ def test_pom_product_prices_visible(log_in_to_saucedemo):
 
 
 def test_pom_add_and_remove_item_from_cart(log_in_to_saucedemo):
+    """Test adding and removing items from the cart, and that the inventory cart badge and button text update accordingly"""
+
+    # Arrange: open the inventory page
     inventory = InventoryPage(log_in_to_saucedemo)
     inventory.wait_until_loaded()
+
+    # Act: add backpack to cart
     inventory.add_backpack()
+
+    # Assert: cart badge shows 1 item, and button shows text "Remove"
     expect(inventory.cart_badge).to_have_text("1")
     expect(inventory.backpack_remove_button).to_have_text("Remove")
+
+    # Act: remove backpack from cart
     inventory.remove_backpack()
+
+    # Assert: cart badge no longer visible, and button text is updated to "Add to cart"
     expect(inventory.cart_badge).not_to_be_visible()
     expect(inventory.backpack_add_button).to_have_text("Add to cart")
 
 
 def test_pom_add_two_items_to_cart(log_in_to_saucedemo):
+    """Test adding two items to the cart, and that the inventory cart badge and button texts update accordingly"""
+
+    # Arrange: open the inventory page
     inventory = InventoryPage(log_in_to_saucedemo)
     inventory.wait_until_loaded()
+
+    # Act: add backpack and bike light to cart
     inventory.add_backpack()
     inventory.add_bike_light()
+
+    # Assert: cart badge shows "2" and buttons for both items show text "Remove"
     expect(inventory.cart_badge).to_have_text("2")
     expect(inventory.backpack_remove_button).to_have_text("Remove")
     expect(inventory.bike_light_remove_button).to_have_text("Remove")
@@ -155,10 +173,17 @@ def test_pom_add_two_items_to_cart(log_in_to_saucedemo):
     ],
 )
 def test_pom_sort_by_name(log_in_to_saucedemo, sort_value, expected_order):
+    """Parameterised test to check that items appear in the expected order when sorted in alphabetical or reverse alphabetical order"""
+
+    # Arrange: open the inventory page
     inventory = InventoryPage(log_in_to_saucedemo)
     inventory.wait_until_loaded()
+
+    # Act: select sort option and get product names
     inventory.sort_by(sort_value)
     names = inventory.get_product_names()
+
+    # Assert: names are in the expected order
     if expected_order == "ascending":
         assert names == sorted(names)
     else:
@@ -169,11 +194,20 @@ def test_pom_sort_by_name(log_in_to_saucedemo, sort_value, expected_order):
     "sort_value, expected_order", [("lohi", "ascending"), ("hilo", "descending")]
 )
 def test_pom_sort_by_price(log_in_to_saucedemo, sort_value, expected_order):
+    """Parameterised test to check that items appear in the expected order when sorted in ascending or descending price order"""
+
+    # Arrange: open the inventory page
     inventory = InventoryPage(log_in_to_saucedemo)
     inventory.wait_until_loaded()
+
+    # Act: select sort option and get product prices
     inventory.sort_by(sort_value)
     raw_prices = inventory.get_product_prices()
-    prices = [float(price.replace("$", "")) for price in raw_prices]
+    prices = [
+        float(price.replace("$", "")) for price in raw_prices
+    ]  # convert prices into floating-point numbers
+
+    # Assert: prices ae in the expected order
     if expected_order == "ascending":
         assert prices == sorted(prices)
     else:
@@ -184,7 +218,14 @@ def test_pom_sort_by_price(log_in_to_saucedemo, sort_value, expected_order):
 
 
 def test_pom_url_after_clicking_cart(log_in_to_saucedemo):
+    """Test to check that the cart button navigates to the cart page"""
+
+    # Arrange: open the inventory page
     inventory = InventoryPage(log_in_to_saucedemo)
     inventory.wait_until_loaded()
+
+    # Act: click cart button
     inventory.open_cart()
+
+    # Assert: URL is as expected
     expect(log_in_to_saucedemo).to_have_url(re.compile("cart"))
