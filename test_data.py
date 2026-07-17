@@ -1,3 +1,9 @@
+"""
+Test data for saucedemo.com tests.
+Centralises credentials, form inputs, and expected error messages
+so updates only need to be made in one place.
+"""
+
 VALID_USER = {"username": "standard_user", "password": "secret_sauce"}
 
 INVALID_USER = {"username": "invalid_user", "password": "invalid_password"}
