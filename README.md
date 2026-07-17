@@ -3,14 +3,14 @@
 A Playwright test suite for the Sauce Demo web application. Tests are written in Python using Playwright and organised using the Page Object Model (POM). The suite is configured to run locally and is set up to run across multiple browsers by default.
 
 ## Quick summary
-- Language: Python (3.10+)
+- Language: Python (3.13+)
 - Test runner: pytest + pytest-playwright
 - Pattern: Page Object Model under `pages/`
 - Tests: under `tests/`
 - Test data / fixtures: `test_data.py` and `conftest.py`
 - Pytest configuration: `pyproject.toml` (contains addopts such as browsers, parallelism and base-url)
 
-## What’s included
+## What's included
 - pages/
   - login_page.py — login page object (navigation, login helpers, error state).
   - inventory_page.py — product listing, sort, cart interactions.
@@ -23,10 +23,10 @@ A Playwright test suite for the Sauce Demo web application. Tests are written in
   - add_backpack_to_cart: logs in and adds the backpack then opens the cart
   - add_backpack_and_bike_light_to_cart: logs in and adds two items then opens the cart
 - test_data.py — VALID_USER, INVALID_USER, CHECKOUT_INFO, and expected error messages.
-- pyproject.toml — pytest configuration (testpaths + addopts). Note: this repo does not include a `playwright.config.py`.
+- pyproject.toml — pytest configuration (testpaths + addopts).
 
 ## Prerequisites
-- Python 3.10 or later
+- Python 3.13 or later
 - pip
 - Internet access to install dependencies and Playwright browsers
 
@@ -42,9 +42,9 @@ A Playwright test suite for the Sauce Demo web application. Tests are written in
 3. Install dependencies:
    pip install -r requirements.txt
 4. Install Playwright browsers:
-   python -m playwright install
+   playwright install
    # or install specific browsers
-   python -m playwright install chromium firefox webkit
+   playwright install chromium firefox webkit
 
 ## Running tests
 The repository configures pytest via `pyproject.toml`. By default the addopts include:
@@ -53,7 +53,7 @@ The repository configures pytest via `pyproject.toml`. By default the addopts in
 Basic commands:
 - Run the full suite (uses pyproject.toml addopts):
   `pytest`
-- Run smoke-marked tests:
+- Run smoke-marked tests only:
   `pytest -m smoke`
 - Run a single browser:
   `pytest --browser chromium`
@@ -71,9 +71,10 @@ Notes:
 ## How the tests are organised
 - The tests use a Page Object Model: each page class exposes actions and accessors so tests remain expressive and focused on behaviour.
 - Common flows (login, adding items) are exposed via fixtures in `conftest.py` to reduce duplication.
+- Smoke tests are marked with `@pytest.mark.smoke` and cover baseline page load checks. Run them with `pytest -m smoke` for a fast sanity check before running the full suite.
 - Assertions use Playwright's `expect` helpers where applicable.
 
 ## Troubleshooting
 - Tests fail due to selector changes: update the locator in the corresponding page class under `pages/`.
 - Flaky tests with parallel runs: reduce `-n` workers or mark tests to avoid shared state.
-- If Playwright cannot find browsers: re-run `python -m playwright install`.
+- If Playwright cannot find browsers: re-run `playwright install`.
