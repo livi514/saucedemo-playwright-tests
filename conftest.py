@@ -3,6 +3,7 @@ import pytest
 from test_data import VALID_USER
 
 
+# Helper function (not a fixture!)
 def perform_login(page):
     page.goto("/")
     page.locator("#user-name").fill(VALID_USER["username"])
