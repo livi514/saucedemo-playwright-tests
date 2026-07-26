@@ -2,6 +2,13 @@
 
 A Playwright test suite for the Sauce Demo web application. Tests are written in Python using Playwright and organised using the Page Object Model (POM). The suite is configured to run locally and is set up to run across multiple browsers by default.
 
+## CI
+
+Tests and linting run automatically on every push via GitHub Actions.
+
+![UI Tests](https://github.com/livi514/saucedemo-playwright-tests/actions/workflows/tests.yml/badge.svg)
+![Lint](https://github.com/livi514/saucedemo-playwright-tests/actions/workflows/lint.yml/badge.svg)
+
 ## Quick summary
 - Language: Python (3.13+)
 - Test runner: pytest + pytest-playwright
