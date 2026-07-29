@@ -4,8 +4,6 @@ A Playwright test suite for the Sauce Demo web application. Tests are written in
 
 ## CI
 
-## CI
-
 Linting and tests run automatically on every push and pull request via GitHub Actions. Tests only run once linting passes, and run across Ubuntu, Windows, and macOS to catch OS-specific issues (e.g. shell differences, timing variance).
 
 ![Lint and Test](https://github.com/livi514/saucedemo-playwright-tests/actions/workflows/lint_and_test.yml/badge.svg)
