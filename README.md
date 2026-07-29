@@ -24,6 +24,8 @@ Linting and tests run automatically on every push and pull request via GitHub Ac
   - checkout_page.py — checkout flow helpers and totals parsing.
   - menu_page.py — site menu and logout.
 - tests/ — tests that exercise login, inventory listing/sorting, cart behavior and checkout.
+- .github/workflows/
+  - lint_and_test.yml — runs linting, then tests across Ubuntu, Windows, and macOS on every push/PR.
 - conftest.py — fixtures:
   - log_in_to_saucedemo: logs in using VALID_USER and returns a page at /inventory.html
   - add_backpack_to_cart: logs in and adds the backpack then opens the cart
@@ -84,3 +86,4 @@ Notes:
 - Tests fail due to selector changes: update the locator in the corresponding page class under `pages/`.
 - Flaky tests with parallel runs: reduce `-n` workers or mark tests to avoid shared state.
 - If Playwright cannot find browsers: re-run `playwright install`.
+- If CI is failing only on Windows: check for shell syntax issues (the workflow forces `bash` on test steps) or timing-sensitive assertions — Windows runners tend to be slower.
