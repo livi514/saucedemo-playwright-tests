@@ -13,7 +13,7 @@ Thanks for wanting to contribute! This file explains how to set up the project, 
 - Code style and linting
 - Dealing with flaky tests
 - Pull request process
-- Setting up CI with GitHub Actions
+- CI with GitHub Actions
 
 ## Getting started
 
@@ -32,23 +32,18 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
-3. Install dependencies:
+3. Install dependencies (includes linters and formatters):
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Install development tools (linters and formatters):
-```bash
-pip install -r requirements-dev.txt
-```
-
-5. Set up pre-commit hooks (optional but recommended):
+4. Set up pre-commit hooks (optional but recommended):
 ```bash
 pip install pre-commit
 pre-commit install
 ```
 
-6. Install Playwright browsers:
+5. Install Playwright browsers:
 ```bash
 python -m playwright install
 ```
@@ -94,8 +89,8 @@ pytest --base-url https://staging.example.com
 - `tests/` — Test modules. Each file tests a specific area of the application.
 - `conftest.py` — Pytest fixtures shared across tests (login flows, pre-filled carts).
 - `test_data.py` — Test data like user credentials and expected messages.
-- `requirements.txt` — Pinned dependencies for reproducible installs.
-- `requirements-dev.txt` — Development tools like linters and formatters.
+- `requirements.txt` — Pinned dependencies for reproducible installs, including linters and formatters.
+- `.github/workflows/` — GitHub Actions workflow(s) for CI (linting and cross-platform testing).
 
 **Naming conventions:**
 - Page object classes: `CamelCase` (e.g., `InventoryPage`, `CartPage`)
@@ -279,39 +274,15 @@ pytest -q
 
 7. **Push to your fork and open a PR** against the main repository
 
-## Setting up CI with GitHub Actions
+## CI with GitHub Actions
 
-A minimal GitHub Actions workflow to run tests in CI:
+This repo uses GitHub Actions (`.github/workflows/lint_and_test.yml`) to run linting and tests automatically on every push and pull request.
 
-```yaml
-name: Run Tests
+The workflow has two jobs:
+- **lint** — runs Black, isort, and flake8
+- **test** — runs the Playwright suite across Ubuntu, Windows, and macOS (matrix strategy), and only runs if linting passes (`needs: lint`)
 
-on: [push, pull_request]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Install dependencies
-        run: pip install -r requirements.txt -r requirements-dev.txt
-      - name: Run linters
-        run: black . && isort . && flake8 .
-      - name: Install Playwright browsers
-        run: python -m playwright install --with-deps
-      - name: Run tests
-        run: pytest --browser chromium -q
-```
-
-This workflow:
-- Sets up Python
-- Installs dependencies and dev tools
-- Runs linters to check code style
-- Installs Playwright browsers
-- Runs pytest with a single browser (faster in CI)
+You don't need to replicate this locally, but if you're debugging a CI failure, running the same linters and tests locally first (see "Running tests locally" and "Code style and linting" above) will usually reproduce the issue faster than waiting on CI.
 
 ## Questions?
 
