@@ -179,15 +179,15 @@ def test_pom_sort_by_name(log_in_to_saucedemo, sort_value, expected_order):
     inventory = InventoryPage(log_in_to_saucedemo)
     inventory.wait_until_loaded()
 
-    # Act: select sort option and get product names
+    # Capture the expected order before changing the sort option.
+    expected_names = inventory.get_product_names()
+    expected_names.sort(reverse=expected_order == "descending")
+
+    # Act: select sort option
     inventory.sort_by(sort_value)
-    names = inventory.get_product_names()
 
     # Assert: names are in the expected order
-    if expected_order == "ascending":
-        assert names == sorted(names)
-    else:
-        assert names == sorted(names, reverse=True)
+    expect(inventory.product_names).to_have_text(expected_names)
 
 
 @pytest.mark.parametrize(
@@ -200,18 +200,18 @@ def test_pom_sort_by_price(log_in_to_saucedemo, sort_value, expected_order):
     inventory = InventoryPage(log_in_to_saucedemo)
     inventory.wait_until_loaded()
 
-    # Act: select sort option and get product prices
-    inventory.sort_by(sort_value)
-    raw_prices = inventory.get_product_prices()
-    prices = [
-        float(price.replace("$", "")) for price in raw_prices
-    ]  # convert prices into floating-point numbers
+    # Capture the expected order before changing the sort option.
+    expected_prices = inventory.get_product_prices()
+    expected_prices.sort(
+        key=lambda price: float(price.replace("$", "")),
+        reverse=expected_order == "descending",
+    )
 
-    # Assert: prices ae in the expected order
-    if expected_order == "ascending":
-        assert prices == sorted(prices)
-    else:
-        assert prices == sorted(prices, reverse=True)
+    # Act: select sort option
+    inventory.sort_by(sort_value)
+
+    # Assert: prices are in the expected order
+    expect(inventory.product_prices).to_have_text(expected_prices)
 
 
 # Navigation to cart page

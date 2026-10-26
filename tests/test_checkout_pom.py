@@ -1,3 +1,5 @@
+from playwright.sync_api import expect
+
 from pages.cart_page import CartPage
 from pages.checkout_page import CheckoutPage
 from pages.inventory_page import InventoryPage
@@ -13,21 +15,21 @@ def test_checkout_with_empty_cart(log_in_to_saucedemo):
     inventory.wait_until_loaded()
 
     # Assert: check that the cart is empty
-    assert inventory.get_cart_count() == 0
+    expect(inventory.cart_badge).not_to_be_visible()
 
     # Act: click on the 'Cart' icon
     inventory.cart_icon.click()
     cart = CartPage(log_in_to_saucedemo)
 
     # Assert: check that the cart page is displayed
-    assert cart.get_title_text() == "Your Cart"
+    expect(cart.page.locator(".title")).to_have_text("Your Cart")
 
     # Act: click on the 'Checkout' button
     cart.checkout_button.click()
     checkout = CheckoutPage(log_in_to_saucedemo)
 
     # Assert: check that the checkout page is displayed
-    assert checkout.get_title_text() == "Checkout: Your Information"
+    expect(checkout.title).to_have_text("Checkout: Your Information")
 
     # Act: fill in the checkout information
     checkout.fill_information(
@@ -37,13 +39,13 @@ def test_checkout_with_empty_cart(log_in_to_saucedemo):
     )
 
     # Assert: check that the checkout overview page is displayed
-    assert checkout.get_title_text() == "Checkout: Overview"
+    expect(checkout.title).to_have_text("Checkout: Overview")
 
     # Act: click on the 'Finish' button
     checkout.finish_button.click()
 
     # Assert: check that the checkout complete page is displayed
-    assert checkout.get_title_text() == "Checkout: Complete!"
+    expect(checkout.title).to_have_text("Checkout: Complete!")
 
 
 def test_checkout_with_items(add_backpack_and_bike_light_to_cart):
@@ -53,14 +55,14 @@ def test_checkout_with_items(add_backpack_and_bike_light_to_cart):
     cart = CartPage(add_backpack_and_bike_light_to_cart)
 
     # Assert: check number of items in the cart
-    assert cart.get_item_count() == 2
+    expect(cart.cart_items).to_have_count(2)
 
     # Act: click on the 'Checkout' button
     cart.checkout_button.click()
     checkout = CheckoutPage(add_backpack_and_bike_light_to_cart)
 
     # Assert: check that the checkout page is displayed
-    assert checkout.get_title_text() == "Checkout: Your Information"
+    expect(checkout.title).to_have_text("Checkout: Your Information")
 
     # Act: fill in the checkout information
     checkout.fill_information(
@@ -70,11 +72,13 @@ def test_checkout_with_items(add_backpack_and_bike_light_to_cart):
     )
 
     # Assert: check that the checkout overview page is displayed
-    assert checkout.get_title_text() == "Checkout: Overview"
+    expect(checkout.title).to_have_text("Checkout: Overview")
 
     # Assert: check that the items are displayed on the checkout overview page
-    assert checkout.get_cart_item_count() == 2
-    assert checkout.get_item_names() == ["Sauce Labs Backpack", "Sauce Labs Bike Light"]
+    expect(checkout.cart_items).to_have_count(2)
+    expect(checkout.item_names).to_have_text(
+        ["Sauce Labs Backpack", "Sauce Labs Bike Light"]
+    )
 
     # Assert: check that the total is correct
     item_total = checkout.item_total_label.text_content()
@@ -89,4 +93,4 @@ def test_checkout_with_items(add_backpack_and_bike_light_to_cart):
     checkout.finish_button.click()
 
     # Assert: check that the checkout complete page is displayed
-    assert checkout.get_title_text() == "Checkout: Complete!"
+    expect(checkout.title).to_have_text("Checkout: Complete!")
